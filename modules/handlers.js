@@ -1,9 +1,16 @@
 var fs = require('fs')
+var formidable = require('formidable'); //moduł do obsługi zapytań wysłanych za pomocą formularza
 
 exports.upload = function(request, response) {
     console.log("Rozpoczynam obsługę żądania upload.");
-    response.write("Rozpoczynam upload!");
-    response.end();
+    var form = new formidable.IncomingForm();
+    form.parse(request, function(error, fields, files) {
+        fs.renameSync(files.upload.path, "test.png");              //.renameSync() odpowiada za zmianę nazwy uploadowanego pliku, 
+        response.writeHead(200, {"Content-Type": "text/html"});    //która kryje się pod kluczem files.upload.path na nazwę test.png 
+        response.write("received image:<br/>");
+        response.write("<img src='/show' />");
+        response.end();
+    });
 }
 
 exports.welcome = function(request, response) {
@@ -21,3 +28,10 @@ exports.error = function(request, response) {
     response.end();
 }
 
+exports.show = function(request, response) {
+    fs.readFile("test.png", "binary", function(error, file) {
+        response.writeHead(200, {"Content-Type": "image/png"});
+        response.write(file, "binary");
+        response.end();
+    });
+}
